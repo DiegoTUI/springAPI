@@ -2,10 +2,13 @@ package hello;
 
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 public class GreetingController {
+    @Autowired
+    private GreetingRepository repository;
 
     private static final String template = "Hello, %s!";
     private final AtomicLong counter = new AtomicLong();
@@ -18,6 +21,7 @@ public class GreetingController {
 
     @RequestMapping(value="/greeting", method=RequestMethod.POST)
     public Greeting greetingPOST(@RequestBody Greeting greeting) {
+        repository.save(greeting);
         return greeting;
     }
 

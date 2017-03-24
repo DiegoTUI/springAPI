@@ -12,14 +12,12 @@ public class Greeting {
 
     Greeting() {}
 
-    public Greeting(String id, String content) {
-        this.id = id;
+    public Greeting(String content) {
         this.type = "regular";
         this.content = content;
     }
 
-    public Greeting(String id, String type, String content) {
-        this.id = id;
+    public Greeting(String type, String content) {
         this.type = type;
         this.content = content;
     }
