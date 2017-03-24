@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="war" name="springAPI:war">
+    <output-path>$PROJECT_DIR$/target</output-path>
+    <root id="archive" name="gs-rest-service-0.1.0.war">
+      <element id="artifact" artifact-name="springAPI:war exploded" />
+    </root>
+  </artifact>
+</component>
