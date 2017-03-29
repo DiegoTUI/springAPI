@@ -13,8 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.embedded.LocalServerPort;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -30,6 +29,8 @@ public class GreetingControllerIT {
     @LocalServerPort
     private int port;
 
+    private String validId;
+
     private String baseURL;
 
     @Autowired
@@ -37,6 +38,12 @@ public class GreetingControllerIT {
 
     @Autowired
     public GreetingRepository repository;
+
+    private void populate() {
+        Greeting greeting = new Greeting("randomContent", "randomType");
+        repository.save(greeting);
+        validId = greeting.getId();
+    }
 
     @Before
     public void setUp() throws Exception {
@@ -104,9 +111,17 @@ public class GreetingControllerIT {
 
     @Test
     public void putGreeting() throws Exception {
+        populate();
+
         final String EXPECTED_GREETING_TYPE = "special";
         final String EXPECTED_GREETING_CONTENT = "kkfu";
-        ResponseEntity<String> response = template.postForEntity(baseURL + "/greeting", new Greeting("kkfu", EXPECTED_GREETING_TYPE), String.class);
+
+        String requestBody = "{\"content\":\"kkfu\", \"type\":\"special\"}";
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> httpEntity = new HttpEntity<String>(requestBody, headers);
+
+        ResponseEntity<String> response = template.exchange(baseURL + "/greeting/{greetingId}", HttpMethod.PUT, httpEntity, String.class, validId);
 
         assertThat( response.getStatusCode() , equalTo(HttpStatus.OK));
 

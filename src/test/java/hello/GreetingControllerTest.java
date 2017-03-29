@@ -26,6 +26,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import static com.lordofthejars.nosqlunit.mongodb.MongoDbRule.MongoDbRuleBuilder.newMongoDbRule;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -76,6 +77,18 @@ public class GreetingControllerTest {
         String jsonRequest = "{\"content\": \"kkfu\", \"type\": \"special\"}";
 
         mvc.perform(post("/greeting")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonRequest))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.type").value("special"))
+                .andExpect(jsonPath("$.content").value("kkfu"));
+    }
+
+    @Test
+    public void putGreeting() throws Exception {
+        String jsonRequest = "{\"content\": \"kkfu\", \"type\": \"special\"}";
+
+        mvc.perform(put("/greeting/1")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonRequest))
                 .andExpect(status().isOk())
