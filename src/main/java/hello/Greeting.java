@@ -1,24 +1,25 @@
 package hello;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 public class Greeting {
 
     @Id
     private String id;
 
-    private String type;
-    private String content;
+    public String type;
+    public String content;
 
-    Greeting() {}
-
-    public Greeting(String content) {
-        this.type = "regular";
-        this.content = content;
+    Greeting() {
     }
 
-    public Greeting(String type, String content) {
-        this.type = type;
+    public Greeting(String content) {
+        this(content,"regular");
+    }
+
+    public Greeting(String content, String type) {
+        this.type = type == null ? "regular" : type;
         this.content = content;
     }
 
@@ -26,18 +27,10 @@ public class Greeting {
         return id;
     }
 
-    public String getType() {
-        return type;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
     @Override
     public String toString() {
         return String.format(
-                "Customer[id=%s, content='%s']",
-                id, content);
+                "Customer[id=%s, type = '%s', content='%s']",
+                id, type, content);
     }
 }

@@ -1,9 +1,9 @@
 package hello;
 
-import java.util.concurrent.atomic.AtomicLong;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 public class GreetingController {
@@ -11,22 +11,26 @@ public class GreetingController {
     private GreetingRepository repository;
 
     private static final String template = "Hello, %s!";
-    private final AtomicLong counter = new AtomicLong();
 
     @RequestMapping(value="/greeting", method=RequestMethod.GET)
-    public Greeting greetingGET(@RequestParam(value="name", defaultValue="World") String name) {
-        return new Greeting(Long.toString(counter.incrementAndGet()),
-                String.format(template, name));
+    public List<Greeting> greetingGET(@RequestParam(value="type", defaultValue="regular") String type) {
+        return repository.findByType(type);
     }
 
     @RequestMapping(value="/greeting", method=RequestMethod.POST)
     public Greeting greetingPOST(@RequestBody Greeting greeting) {
+        greeting = greeting.type == null ? new Greeting(greeting.content) : greeting;
         repository.save(greeting);
         return greeting;
     }
 
     @RequestMapping(value="/greeting/{greetingId}", method=RequestMethod.PUT)
     public Greeting greetingPUT(@PathVariable String greetingId,  @RequestBody Greeting greeting) {
-        return new Greeting(greetingId, greeting.getContent());
+        Greeting dbGreeting = repository.findOne(greetingId);
+        dbGreeting.type = greeting.type;
+        dbGreeting.content = greeting.content;
+
+        repository.save(dbGreeting);
+        return dbGreeting;
     }
 }

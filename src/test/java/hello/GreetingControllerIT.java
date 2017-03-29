@@ -4,8 +4,8 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
-import java.net.URL;
-
+import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -15,44 +15,65 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.test.context.transaction.TransactionConfiguration;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@TestPropertySource(locations="classpath:test.properties")
 public class GreetingControllerIT {
 
     @LocalServerPort
     private int port;
 
-    private URL base;
+    private String baseURL;
 
     @Autowired
     private TestRestTemplate template;
 
+    @Autowired
+    public GreetingRepository repository;
+
     @Before
     public void setUp() throws Exception {
-        this.base = new URL("http://localhost:" + port + "/greeting?name=kkfu");
+        this.baseURL = "http://localhost:" + port;
+    }
+
+    @After
+    public void tearDown() {
+        this.repository.deleteAll();
     }
 
     @Test
     public void getGreeting() throws Exception {
         final String EXPECTED_GREETING_TYPE = "regular";
         final String EXPECTED_GREETING_CONTENT = "Hello, kkfu!";
-        ResponseEntity<String> response = template.getForEntity(base.toString(),
+        ResponseEntity<String> response = template.getForEntity(baseURL + "/greeting",
                 String.class);
 
         assertThat( response.getStatusCode() , equalTo(HttpStatus.OK));
 
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode responseJson = objectMapper.readTree(response.getBody());
-        JsonNode idJson = responseJson.path("id");
+        assertThat(responseJson.isArray(), is(true));
+    }
+
+    @Test
+    public void postGreetingWithNoType() throws Exception {
+        final String EXPECTED_GREETING_TYPE = "regular";
+        final String EXPECTED_GREETING_CONTENT = "kkfu";
+        ResponseEntity<String> response = template.postForEntity(baseURL + "/greeting", new Greeting("kkfu"), String.class);
+
+        assertThat( response.getStatusCode() , equalTo(HttpStatus.OK));
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode responseJson = objectMapper.readTree(response.getBody());
         JsonNode typeJson = responseJson.path("type");
         JsonNode contentJson = responseJson.path("content");
-
-        assertThat( idJson.isMissingNode() , is(false) );
 
         assertThat( typeJson.isMissingNode() , is(false) );
         assertThat( typeJson.asText() , equalTo(EXPECTED_GREETING_TYPE));
@@ -60,4 +81,45 @@ public class GreetingControllerIT {
         assertThat( contentJson.isMissingNode() , is(false) );
         assertThat( contentJson.asText() , equalTo(EXPECTED_GREETING_CONTENT));
     }
+
+    @Test
+    public void postGreetingWithType() throws Exception {
+        final String EXPECTED_GREETING_TYPE = "special";
+        final String EXPECTED_GREETING_CONTENT = "kkfu";
+        ResponseEntity<String> response = template.postForEntity(baseURL + "/greeting", new Greeting("kkfu", EXPECTED_GREETING_TYPE), String.class);
+
+        assertThat( response.getStatusCode() , equalTo(HttpStatus.OK));
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode responseJson = objectMapper.readTree(response.getBody());
+        JsonNode typeJson = responseJson.path("type");
+        JsonNode contentJson = responseJson.path("content");
+
+        assertThat( typeJson.isMissingNode() , is(false) );
+        assertThat( typeJson.asText() , equalTo(EXPECTED_GREETING_TYPE));
+
+        assertThat( contentJson.isMissingNode() , is(false) );
+        assertThat( contentJson.asText() , equalTo(EXPECTED_GREETING_CONTENT));
+    }
+
+    @Test
+    public void putGreeting() throws Exception {
+        final String EXPECTED_GREETING_TYPE = "special";
+        final String EXPECTED_GREETING_CONTENT = "kkfu";
+        ResponseEntity<String> response = template.postForEntity(baseURL + "/greeting", new Greeting("kkfu", EXPECTED_GREETING_TYPE), String.class);
+
+        assertThat( response.getStatusCode() , equalTo(HttpStatus.OK));
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode responseJson = objectMapper.readTree(response.getBody());
+        JsonNode typeJson = responseJson.path("type");
+        JsonNode contentJson = responseJson.path("content");
+
+        assertThat( typeJson.isMissingNode() , is(false) );
+        assertThat( typeJson.asText() , equalTo(EXPECTED_GREETING_TYPE));
+
+        assertThat( contentJson.isMissingNode() , is(false) );
+        assertThat( contentJson.asText() , equalTo(EXPECTED_GREETING_CONTENT));
+    }
+
 }
