@@ -96,6 +96,18 @@ public class GreetingControllerTest {
                 .andExpect(jsonPath("$.content").value("kkfu"));
     }
 
+    @Test
+    public void putGreetingInvalidId() throws Exception {
+        String jsonRequest = "{\"content\": \"kkfu\", \"type\": \"special\"}";
+
+        mvc.perform(put("/greeting/invalid")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonRequest))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("InvalidRequest"))
+                .andExpect(jsonPath("$.message").value("Greeting not found by id"));
+    }
+
 
     @Configuration
     @EnableMongoRepositories

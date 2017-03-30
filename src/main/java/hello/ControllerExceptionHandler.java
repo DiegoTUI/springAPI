@@ -7,25 +7,64 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import javax.servlet.http.HttpServletRequest;
 
 @ControllerAdvice
-public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
+public class ControllerExceptionHandler {
 
-    @ExceptionHandler({ InvalidRequestException.class })
+    @ExceptionHandler(InvalidRequestException.class)
     protected ResponseEntity<Object> handleInvalidRequest(RuntimeException e, WebRequest request) {
-        InvalidRequestException ire = (InvalidRequestException) e;
+        InvalidRequestException invalidRequestException = (InvalidRequestException) e;
 
-        ErrorResource error = new ErrorResource("InvalidRequest", ire.getMessage());
+        ErrorResource error = new ErrorResource("InvalidRequest", invalidRequestException.getMessage());
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        return handleExceptionInternal(e, error, headers, HttpStatus.UNPROCESSABLE_ENTITY, request);
+        return new ResponseEntity<Object>(error, headers, HttpStatus.NOT_FOUND);
     }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    protected ResponseEntity<Object> handleMessageNotReadable(HttpMessageNotReadableException e, WebRequest request) {
+
+        ErrorResource error = new ErrorResource("InvalidRequest", e.getMessage());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        return new ResponseEntity<Object>(error, headers, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    protected ResponseEntity<Object> handleMethodNotSupported(HttpRequestMethodNotSupportedException e, WebRequest request) {
+
+        ErrorResource error = new ErrorResource("InvalidEndpoint", e.getMessage());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        return new ResponseEntity<Object>(error, headers, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(Exception.class)
+    protected ResponseEntity<Object> handleDefaultException(RuntimeException e, WebRequest request) {
+
+        ErrorResource error = new ErrorResource("Generic", e.getMessage());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        return new ResponseEntity<Object>(error, headers, HttpStatus.NOT_FOUND);
+    }
+
 }

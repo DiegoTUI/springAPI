@@ -137,4 +137,32 @@ public class GreetingControllerIT {
         assertThat( contentJson.asText() , equalTo(EXPECTED_GREETING_CONTENT));
     }
 
+    @Test
+    public void putGreetingInvalidId() throws Exception {
+        populate();
+
+        final String EXPECTED_CODE = "InvalidRequest";
+        final String EXPECTED_MESSAGE = "Greeting not found by id";
+
+        String requestBody = "{\"content\":\"kkfu\", \"type\":\"special\"}";
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> httpEntity = new HttpEntity<String>(requestBody, headers);
+
+        ResponseEntity<String> response = template.exchange(baseURL + "/greeting/{greetingId}", HttpMethod.PUT, httpEntity, String.class, "invalidId");
+
+        assertThat( response.getStatusCode() , equalTo(HttpStatus.NOT_FOUND));
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode responseJson = objectMapper.readTree(response.getBody());
+        JsonNode codeJson = responseJson.path("code");
+        JsonNode messageJson = responseJson.path("message");
+
+        assertThat( codeJson.isMissingNode() , is(false) );
+        assertThat( codeJson.asText() , equalTo(EXPECTED_CODE));
+
+        assertThat( messageJson.isMissingNode() , is(false) );
+        assertThat( messageJson.asText() , equalTo(EXPECTED_MESSAGE));
+    }
+
 }
