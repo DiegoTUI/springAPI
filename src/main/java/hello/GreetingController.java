@@ -1,7 +1,6 @@
 package hello;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -10,8 +9,6 @@ import java.util.List;
 public class GreetingController {
     @Autowired
     private GreetingRepository repository;
-
-    private static final String template = "Hello, %s!";
 
     @RequestMapping(value="/greeting", method=RequestMethod.GET)
     public List<Greeting> greetingGET(@RequestParam(value="type", defaultValue="regular") String type) {
