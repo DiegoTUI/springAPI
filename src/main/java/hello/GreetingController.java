@@ -1,6 +1,7 @@
 package hello;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,8 +26,11 @@ public class GreetingController {
     }
 
     @RequestMapping(value="/greeting/{greetingId}", method=RequestMethod.PUT)
-    public Greeting greetingPUT(@PathVariable String greetingId,  @RequestBody Greeting greeting) {
+    public Greeting greetingPUT(@PathVariable String greetingId, @RequestBody Greeting greeting) {
         Greeting dbGreeting = repository.findOne(greetingId);
+        if (dbGreeting == null) {
+            throw new InvalidRequestException("Greeting not found by id");
+        }
         dbGreeting.type = greeting.type;
         dbGreeting.content = greeting.content;
 
